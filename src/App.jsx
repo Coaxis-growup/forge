@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState } from "react"; 
 
 const FORGE_SYSTEM_PROMPT = `Tu es FORGE, l'IA interne de Coaxis Growth Agency.
 
