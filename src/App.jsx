@@ -1,4 +1,4 @@
-import { useState } from "react"; 
+import { useState } from "react";
 
 const FORGE_SYSTEM_PROMPT = `Tu es FORGE, l'IA interne de Coaxis Growth Agency.
 
@@ -179,7 +179,6 @@ export default function FORGE() {
   const [copied, setCopied] = useState(false);
 
   const updateForm = (k, v) => setForm((f) => ({ ...f, [k]: v }));
-
   const canProceed = () => form.prenom && form.niche && form.audience && form.resultats;
 
   const generate = async () => {
@@ -208,11 +207,13 @@ export default function FORGE() {
       if (data.content?.[0]?.text) {
         setResult(data.content[0].text);
         setStep(2);
+      } else if (data.error) {
+        setError(`Erreur API : ${data.error.message}`);
       } else {
-        setError("Erreur lors de la génération. Réessaie.");
+        setError(`Réponse inattendue : ${JSON.stringify(data)}`);
       }
     } catch (e) {
-      setError("Erreur de connexion à l'API.");
+      setError(`Erreur : ${e.message}`);
     }
     setLoading(false);
   };
@@ -233,73 +234,23 @@ export default function FORGE() {
   const selectedDel = DELIVERABLES.find((d) => d.id === selectedDeliverable);
 
   return (
-    <div style={{
-      minHeight: "100vh",
-      background: "#0a0a0a",
-      fontFamily: "'DM Mono', 'Courier New', monospace",
-      color: "#e8e0d0",
-      padding: "0",
-      margin: "0",
-    }}>
+    <div style={{ minHeight: "100vh", background: "#0a0a0a", fontFamily: "'DM Mono', 'Courier New', monospace", color: "#e8e0d0", padding: "0", margin: "0" }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Bebas+Neue&display=swap');
         * { box-sizing: border-box; }
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-track { background: #111; }
         ::-webkit-scrollbar-thumb { background: #e05a00; border-radius: 2px; }
-        .forge-input {
-          background: #111;
-          border: 1px solid #2a2a2a;
-          border-radius: 2px;
-          color: #e8e0d0;
-          padding: 10px 14px;
-          font-family: 'DM Mono', monospace;
-          font-size: 13px;
-          width: 100%;
-          outline: none;
-          transition: border-color 0.2s;
-        }
+        .forge-input { background: #111; border: 1px solid #2a2a2a; border-radius: 2px; color: #e8e0d0; padding: 10px 14px; font-family: 'DM Mono', monospace; font-size: 13px; width: 100%; outline: none; transition: border-color 0.2s; }
         .forge-input:focus { border-color: #e05a00; }
         .forge-input::placeholder { color: #444; }
-        .del-card {
-          background: #111;
-          border: 1px solid #1e1e1e;
-          border-radius: 3px;
-          padding: 16px 18px;
-          cursor: pointer;
-          transition: all 0.15s;
-          display: flex;
-          align-items: flex-start;
-          gap: 14px;
-        }
+        .del-card { background: #111; border: 1px solid #1e1e1e; border-radius: 3px; padding: 16px 18px; cursor: pointer; transition: all 0.15s; display: flex; align-items: flex-start; gap: 14px; }
         .del-card:hover { border-color: #e05a00; background: #141414; }
         .del-card.selected { border-color: #e05a00; background: #1a0e00; }
-        .forge-btn {
-          background: #e05a00;
-          color: #0a0a0a;
-          border: none;
-          padding: 12px 28px;
-          font-family: 'Bebas Neue', sans-serif;
-          font-size: 16px;
-          letter-spacing: 2px;
-          cursor: pointer;
-          border-radius: 2px;
-          transition: all 0.15s;
-        }
+        .forge-btn { background: #e05a00; color: #0a0a0a; border: none; padding: 12px 28px; font-family: 'Bebas Neue', sans-serif; font-size: 16px; letter-spacing: 2px; cursor: pointer; border-radius: 2px; transition: all 0.15s; }
         .forge-btn:hover { background: #ff6a0d; }
         .forge-btn:disabled { background: #333; color: #555; cursor: not-allowed; }
-        .forge-btn-ghost {
-          background: transparent;
-          color: #555;
-          border: 1px solid #2a2a2a;
-          padding: 10px 22px;
-          font-family: 'DM Mono', monospace;
-          font-size: 12px;
-          letter-spacing: 1px;
-          cursor: pointer;
-          border-radius: 2px;
-          transition: all 0.15s;
-        }
+        .forge-btn-ghost { background: transparent; color: #555; border: 1px solid #2a2a2a; padding: 10px 22px; font-family: 'DM Mono', monospace; font-size: 12px; letter-spacing: 1px; cursor: pointer; border-radius: 2px; transition: all 0.15s; }
         .forge-btn-ghost:hover { border-color: #555; color: #888; }
         .result-content { white-space: pre-wrap; line-height: 1.8; font-size: 13px; color: #c8c0b0; }
         .step-dot { width: 6px; height: 6px; border-radius: 50%; background: #2a2a2a; }
@@ -307,18 +258,10 @@ export default function FORGE() {
         .step-dot.done { background: #555; }
         .pulse { animation: pulse 1.5s ease-in-out infinite; }
         @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
-        .result-block {
-          background: #0f0f0f;
-          border: 1px solid #1e1e1e;
-          border-radius: 3px;
-          padding: 28px;
-          max-height: 60vh;
-          overflow-y: auto;
-        }
+        .result-block { background: #0f0f0f; border: 1px solid #1e1e1e; border-radius: 3px; padding: 28px; max-height: 60vh; overflow-y: auto; }
         label { display: block; font-size: 10px; letter-spacing: 2px; color: #555; margin-bottom: 6px; text-transform: uppercase; }
       `}</style>
 
-      {/* Header */}
       <div style={{ borderBottom: "1px solid #1a1a1a", padding: "20px 32px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
           <span style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: "28px", letterSpacing: "6px", color: "#e05a00" }}>FORGE</span>
@@ -337,7 +280,6 @@ export default function FORGE() {
 
       <div style={{ maxWidth: "680px", margin: "0 auto", padding: "40px 24px" }}>
 
-        {/* STEP 0 — PROFIL */}
         {step === 0 && (
           <div>
             <div style={{ marginBottom: "36px" }}>
@@ -402,7 +344,6 @@ export default function FORGE() {
           </div>
         )}
 
-        {/* STEP 1 — LIVRABLE */}
         {step === 1 && (
           <div>
             <div style={{ marginBottom: "36px" }}>
@@ -421,7 +362,7 @@ export default function FORGE() {
               ))}
             </div>
             {error && (
-              <div style={{ background: "#1a0000", border: "1px solid #400", borderRadius: "2px", padding: "12px 16px", marginBottom: "20px", fontSize: "12px", color: "#e05a00" }}>{error}</div>
+              <div style={{ background: "#1a0000", border: "1px solid #400", borderRadius: "2px", padding: "12px 16px", marginBottom: "20px", fontSize: "11px", color: "#e05a00", wordBreak: "break-all" }}>{error}</div>
             )}
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <button className="forge-btn-ghost" onClick={() => setStep(0)}>← RETOUR</button>
@@ -432,7 +373,6 @@ export default function FORGE() {
           </div>
         )}
 
-        {/* STEP 2 — RÉSULTAT */}
         {step === 2 && (
           <div>
             <div style={{ marginBottom: "28px", display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
@@ -453,7 +393,6 @@ export default function FORGE() {
         )}
       </div>
 
-      {/* Footer */}
       <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, borderTop: "1px solid #111", padding: "10px 32px", display: "flex", justifyContent: "space-between", background: "#0a0a0a" }}>
         <span style={{ fontSize: "9px", color: "#222", letterSpacing: "2px" }}>FORGE v0.1 · COAXIS GROWTH AGENCY</span>
         <span style={{ fontSize: "9px", color: "#222", letterSpacing: "2px" }}>USAGE INTERNE · SYSTEM 10K</span>
