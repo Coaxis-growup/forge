@@ -158,8 +158,6 @@ Pour chaque email : Objet / Préheader / Corps complet.`,
   },
 ];
 
-const STEPS = ["profil", "livrable", "resultat"];
-
 export default function FORGE() {
   const [step, setStep] = useState(0);
   const [form, setForm] = useState({
@@ -182,11 +180,7 @@ export default function FORGE() {
 
   const updateForm = (k, v) => setForm((f) => ({ ...f, [k]: v }));
 
-  const canProceed = () => {
-    return (
-      form.prenom && form.niche && form.audience && form.resultats
-    );
-  };
+  const canProceed = () => form.prenom && form.niche && form.audience && form.resultats;
 
   const generate = async () => {
     if (!selectedDeliverable) return;
@@ -197,10 +191,15 @@ export default function FORGE() {
     try {
       const res = await fetch("https://api.anthropic.com/v1/messages", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": import.meta.env.VITE_ANTHROPIC_API_KEY,
+          "anthropic-version": "2023-06-01",
+          "anthropic-dangerous-direct-browser-access": "true",
+        },
         body: JSON.stringify({
           model: "claude-sonnet-4-20250514",
-          max_tokens: 1000,
+          max_tokens: 1500,
           system: FORGE_SYSTEM_PROMPT,
           messages: [{ role: "user", content: deliverable.prompt(form) }],
         }),
@@ -231,10 +230,6 @@ export default function FORGE() {
     setError("");
   };
 
-  const goToDeliverables = () => {
-    if (canProceed()) setStep(1);
-  };
-
   const selectedDel = DELIVERABLES.find((d) => d.id === selectedDeliverable);
 
   return (
@@ -252,7 +247,6 @@ export default function FORGE() {
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-track { background: #111; }
         ::-webkit-scrollbar-thumb { background: #e05a00; border-radius: 2px; }
-        
         .forge-input {
           background: #111;
           border: 1px solid #2a2a2a;
@@ -265,11 +259,8 @@ export default function FORGE() {
           outline: none;
           transition: border-color 0.2s;
         }
-        .forge-input:focus {
-          border-color: #e05a00;
-        }
+        .forge-input:focus { border-color: #e05a00; }
         .forge-input::placeholder { color: #444; }
-        
         .del-card {
           background: #111;
           border: 1px solid #1e1e1e;
@@ -281,15 +272,8 @@ export default function FORGE() {
           align-items: flex-start;
           gap: 14px;
         }
-        .del-card:hover {
-          border-color: #e05a00;
-          background: #141414;
-        }
-        .del-card.selected {
-          border-color: #e05a00;
-          background: #1a0e00;
-        }
-        
+        .del-card:hover { border-color: #e05a00; background: #141414; }
+        .del-card.selected { border-color: #e05a00; background: #1a0e00; }
         .forge-btn {
           background: #e05a00;
           color: #0a0a0a;
@@ -304,7 +288,6 @@ export default function FORGE() {
         }
         .forge-btn:hover { background: #ff6a0d; }
         .forge-btn:disabled { background: #333; color: #555; cursor: not-allowed; }
-        
         .forge-btn-ghost {
           background: transparent;
           color: #555;
@@ -318,31 +301,12 @@ export default function FORGE() {
           transition: all 0.15s;
         }
         .forge-btn-ghost:hover { border-color: #555; color: #888; }
-        
-        .result-content {
-          white-space: pre-wrap;
-          line-height: 1.8;
-          font-size: 13px;
-          color: #c8c0b0;
-        }
-        
-        .step-dot {
-          width: 6px;
-          height: 6px;
-          border-radius: 50%;
-          background: #2a2a2a;
-        }
+        .result-content { white-space: pre-wrap; line-height: 1.8; font-size: 13px; color: #c8c0b0; }
+        .step-dot { width: 6px; height: 6px; border-radius: 50%; background: #2a2a2a; }
         .step-dot.active { background: #e05a00; }
         .step-dot.done { background: #555; }
-
-        .pulse {
-          animation: pulse 1.5s ease-in-out infinite;
-        }
-        @keyframes pulse {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.4; }
-        }
-
+        .pulse { animation: pulse 1.5s ease-in-out infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
         .result-block {
           background: #0f0f0f;
           border: 1px solid #1e1e1e;
@@ -351,52 +315,20 @@ export default function FORGE() {
           max-height: 60vh;
           overflow-y: auto;
         }
-
-        label {
-          display: block;
-          font-size: 10px;
-          letter-spacing: 2px;
-          color: #555;
-          margin-bottom: 6px;
-          text-transform: uppercase;
-        }
+        label { display: block; font-size: 10px; letter-spacing: 2px; color: #555; margin-bottom: 6px; text-transform: uppercase; }
       `}</style>
 
       {/* Header */}
-      <div style={{
-        borderBottom: "1px solid #1a1a1a",
-        padding: "20px 32px",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-      }}>
+      <div style={{ borderBottom: "1px solid #1a1a1a", padding: "20px 32px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-          <span style={{
-            fontFamily: "'Bebas Neue', sans-serif",
-            fontSize: "28px",
-            letterSpacing: "6px",
-            color: "#e05a00",
-          }}>FORGE</span>
-          <span style={{
-            fontSize: "10px",
-            color: "#333",
-            letterSpacing: "3px",
-            textTransform: "uppercase",
-            borderLeft: "1px solid #222",
-            paddingLeft: "12px",
-          }}>by Coaxis</span>
+          <span style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: "28px", letterSpacing: "6px", color: "#e05a00" }}>FORGE</span>
+          <span style={{ fontSize: "10px", color: "#333", letterSpacing: "3px", textTransform: "uppercase", borderLeft: "1px solid #222", paddingLeft: "12px" }}>by Coaxis</span>
         </div>
-
-        {/* Steps */}
         <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
           {["PROFIL", "LIVRABLE", "RÉSULTAT"].map((s, i) => (
             <div key={i} style={{ display: "flex", alignItems: "center", gap: "8px" }}>
               <div className={`step-dot ${step === i ? "active" : step > i ? "done" : ""}`} />
-              <span style={{
-                fontSize: "9px",
-                letterSpacing: "2px",
-                color: step === i ? "#e05a00" : step > i ? "#444" : "#2a2a2a",
-              }}>{s}</span>
+              <span style={{ fontSize: "9px", letterSpacing: "2px", color: step === i ? "#e05a00" : step > i ? "#444" : "#2a2a2a" }}>{s}</span>
               {i < 2 && <span style={{ color: "#1e1e1e", fontSize: "10px" }}>—</span>}
             </div>
           ))}
@@ -409,30 +341,18 @@ export default function FORGE() {
         {step === 0 && (
           <div>
             <div style={{ marginBottom: "36px" }}>
-              <h1 style={{
-                fontFamily: "'Bebas Neue', sans-serif",
-                fontSize: "36px",
-                letterSpacing: "4px",
-                color: "#e8e0d0",
-                margin: "0 0 8px 0",
-              }}>PROFIL DU COACH</h1>
-              <p style={{ fontSize: "12px", color: "#444", margin: 0, letterSpacing: "1px" }}>
-                Ces informations servent à personnaliser chaque livrable généré.
-              </p>
+              <h1 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: "36px", letterSpacing: "4px", color: "#e8e0d0", margin: "0 0 8px 0" }}>PROFIL DU COACH</h1>
+              <p style={{ fontSize: "12px", color: "#444", margin: 0, letterSpacing: "1px" }}>Ces informations servent à personnaliser chaque livrable généré.</p>
             </div>
-
             <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
                 <div>
                   <label>Prénom *</label>
-                  <input className="forge-input" placeholder="Ex : Sarah" value={form.prenom}
-                    onChange={e => updateForm("prenom", e.target.value)} />
+                  <input className="forge-input" placeholder="Ex : Sarah" value={form.prenom} onChange={e => updateForm("prenom", e.target.value)} />
                 </div>
                 <div>
                   <label>Plateforme principale</label>
-                  <select className="forge-input" value={form.plateforme}
-                    onChange={e => updateForm("plateforme", e.target.value)}
-                    style={{ appearance: "none" }}>
+                  <select className="forge-input" value={form.plateforme} onChange={e => updateForm("plateforme", e.target.value)} style={{ appearance: "none" }}>
                     <option>Instagram</option>
                     <option>TikTok</option>
                     <option>YouTube</option>
@@ -440,70 +360,45 @@ export default function FORGE() {
                   </select>
                 </div>
               </div>
-
               <div>
                 <label>Niche exacte *</label>
-                <input className="forge-input" placeholder="Ex : coach nutrition spécialisé femmes 35-50 ans post-grossesse"
-                  value={form.niche} onChange={e => updateForm("niche", e.target.value)} />
+                <input className="forge-input" placeholder="Ex : coach nutrition spécialisé femmes 35-50 ans post-grossesse" value={form.niche} onChange={e => updateForm("niche", e.target.value)} />
               </div>
-
               <div>
                 <label>Audience cible *</label>
-                <input className="forge-input" placeholder="Ex : femmes actives 35-50 ans qui veulent perdre du poids après grossesse"
-                  value={form.audience} onChange={e => updateForm("audience", e.target.value)} />
+                <input className="forge-input" placeholder="Ex : femmes actives 35-50 ans qui veulent perdre du poids après grossesse" value={form.audience} onChange={e => updateForm("audience", e.target.value)} />
               </div>
-
               <div>
                 <label>Résultats clients prouvés *</label>
-                <textarea className="forge-input" rows={3}
-                  placeholder="Ex : 47 clientes accompagnées, -8kg en moyenne sur 3 mois, 92% maintiennent leur résultat 6 mois après"
-                  value={form.resultats} onChange={e => updateForm("resultats", e.target.value)}
-                  style={{ resize: "vertical" }} />
+                <textarea className="forge-input" rows={3} placeholder="Ex : 47 clientes accompagnées, -8kg en moyenne sur 3 mois, 92% maintiennent leur résultat 6 mois après" value={form.resultats} onChange={e => updateForm("resultats", e.target.value)} style={{ resize: "vertical" }} />
               </div>
-
               <div>
                 <label>Ton différenciateur principal</label>
-                <input className="forge-input" placeholder="Ex : approche sans restriction, protocole adapté aux mères qui allaitent"
-                  value={form.differenciateur} onChange={e => updateForm("differenciateur", e.target.value)} />
+                <input className="forge-input" placeholder="Ex : approche sans restriction, protocole adapté aux mères qui allaitent" value={form.differenciateur} onChange={e => updateForm("differenciateur", e.target.value)} />
               </div>
-
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "16px" }}>
                 <div>
                   <label>Offre actuelle</label>
-                  <input className="forge-input" placeholder="Ex : suivi 3 mois"
-                    value={form.offre_actuelle} onChange={e => updateForm("offre_actuelle", e.target.value)} />
+                  <input className="forge-input" placeholder="Ex : suivi 3 mois" value={form.offre_actuelle} onChange={e => updateForm("offre_actuelle", e.target.value)} />
                 </div>
                 <div>
                   <label>Prix actuel (€)</label>
-                  <input className="forge-input" type="number" placeholder="Ex : 800"
-                    value={form.prix_actuel} onChange={e => updateForm("prix_actuel", e.target.value)} />
+                  <input className="forge-input" type="number" placeholder="Ex : 800" value={form.prix_actuel} onChange={e => updateForm("prix_actuel", e.target.value)} />
                 </div>
                 <div>
                   <label>Revenus/mois (€)</label>
-                  <input className="forge-input" type="number" placeholder="Ex : 2000"
-                    value={form.revenus_actuels} onChange={e => updateForm("revenus_actuels", e.target.value)} />
+                  <input className="forge-input" type="number" placeholder="Ex : 2000" value={form.revenus_actuels} onChange={e => updateForm("revenus_actuels", e.target.value)} />
                 </div>
               </div>
-
               <div>
                 <label>Objectif revenus/mois (€)</label>
-                <input className="forge-input" type="number" placeholder="Ex : 10000"
-                  value={form.objectif_revenus} onChange={e => updateForm("objectif_revenus", e.target.value)} />
+                <input className="forge-input" type="number" placeholder="Ex : 10000" value={form.objectif_revenus} onChange={e => updateForm("objectif_revenus", e.target.value)} />
               </div>
             </div>
-
             <div style={{ marginTop: "36px", display: "flex", justifyContent: "flex-end" }}>
-              <button className="forge-btn" onClick={goToDeliverables}
-                disabled={!canProceed()}>
-                CHOISIR LE LIVRABLE →
-              </button>
+              <button className="forge-btn" onClick={() => canProceed() && setStep(1)} disabled={!canProceed()}>CHOISIR LE LIVRABLE →</button>
             </div>
-
-            {!canProceed() && (
-              <p style={{ fontSize: "10px", color: "#333", textAlign: "right", marginTop: "8px", letterSpacing: "1px" }}>
-                * champs obligatoires
-              </p>
-            )}
+            {!canProceed() && <p style={{ fontSize: "10px", color: "#333", textAlign: "right", marginTop: "8px", letterSpacing: "1px" }}>* champs obligatoires</p>}
           </div>
         )}
 
@@ -511,52 +406,27 @@ export default function FORGE() {
         {step === 1 && (
           <div>
             <div style={{ marginBottom: "36px" }}>
-              <h1 style={{
-                fontFamily: "'Bebas Neue', sans-serif",
-                fontSize: "36px",
-                letterSpacing: "4px",
-                color: "#e8e0d0",
-                margin: "0 0 8px 0",
-              }}>QUEL LIVRABLE ?</h1>
-              <p style={{ fontSize: "12px", color: "#444", margin: 0, letterSpacing: "1px" }}>
-                Sélectionne le livrable à générer pour {form.prenom}.
-              </p>
+              <h1 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: "36px", letterSpacing: "4px", color: "#e8e0d0", margin: "0 0 8px 0" }}>QUEL LIVRABLE ?</h1>
+              <p style={{ fontSize: "12px", color: "#444", margin: 0, letterSpacing: "1px" }}>Sélectionne le livrable à générer pour {form.prenom}.</p>
             </div>
-
             <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginBottom: "32px" }}>
               {DELIVERABLES.map((d) => (
-                <div key={d.id}
-                  className={`del-card ${selectedDeliverable === d.id ? "selected" : ""}`}
-                  onClick={() => setSelectedDeliverable(d.id)}>
-                  <span style={{ fontSize: "18px", color: selectedDeliverable === d.id ? "#e05a00" : "#333", marginTop: "1px" }}>
-                    {d.icon}
-                  </span>
+                <div key={d.id} className={`del-card ${selectedDeliverable === d.id ? "selected" : ""}`} onClick={() => setSelectedDeliverable(d.id)}>
+                  <span style={{ fontSize: "18px", color: selectedDeliverable === d.id ? "#e05a00" : "#333", marginTop: "1px" }}>{d.icon}</span>
                   <div>
-                    <div style={{ fontSize: "13px", fontWeight: "500", letterSpacing: "1px", marginBottom: "3px" }}>
-                      {d.label}
-                    </div>
-                    <div style={{ fontSize: "11px", color: "#555", letterSpacing: "0.5px" }}>
-                      {d.desc}
-                    </div>
+                    <div style={{ fontSize: "13px", fontWeight: "500", letterSpacing: "1px", marginBottom: "3px" }}>{d.label}</div>
+                    <div style={{ fontSize: "11px", color: "#555", letterSpacing: "0.5px" }}>{d.desc}</div>
                   </div>
                 </div>
               ))}
             </div>
-
             {error && (
-              <div style={{ background: "#1a0000", border: "1px solid #400", borderRadius: "2px",
-                padding: "12px 16px", marginBottom: "20px", fontSize: "12px", color: "#e05a00" }}>
-                {error}
-              </div>
+              <div style={{ background: "#1a0000", border: "1px solid #400", borderRadius: "2px", padding: "12px 16px", marginBottom: "20px", fontSize: "12px", color: "#e05a00" }}>{error}</div>
             )}
-
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
               <button className="forge-btn-ghost" onClick={() => setStep(0)}>← RETOUR</button>
-              <button className="forge-btn" onClick={generate}
-                disabled={!selectedDeliverable || loading}>
-                {loading ? (
-                  <span className="pulse">GÉNÉRATION EN COURS...</span>
-                ) : "GÉNÉRER →"}
+              <button className="forge-btn" onClick={generate} disabled={!selectedDeliverable || loading}>
+                {loading ? <span className="pulse">GÉNÉRATION EN COURS...</span> : "GÉNÉRER →"}
               </button>
             </div>
           </div>
@@ -567,58 +437,26 @@ export default function FORGE() {
           <div>
             <div style={{ marginBottom: "28px", display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
               <div>
-                <h1 style={{
-                  fontFamily: "'Bebas Neue', sans-serif",
-                  fontSize: "36px",
-                  letterSpacing: "4px",
-                  color: "#e8e0d0",
-                  margin: "0 0 4px 0",
-                }}>{selectedDel?.label?.toUpperCase()}</h1>
-                <p style={{ fontSize: "11px", color: "#444", margin: 0, letterSpacing: "1px" }}>
-                  Généré pour {form.prenom} · {form.niche}
-                </p>
+                <h1 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: "36px", letterSpacing: "4px", color: "#e8e0d0", margin: "0 0 4px 0" }}>{selectedDel?.label?.toUpperCase()}</h1>
+                <p style={{ fontSize: "11px", color: "#444", margin: 0, letterSpacing: "1px" }}>Généré pour {form.prenom} · {form.niche}</p>
               </div>
-              <div style={{ display: "flex", gap: "10px" }}>
-                <button className="forge-btn-ghost" onClick={copyResult}>
-                  {copied ? "✓ COPIÉ" : "COPIER"}
-                </button>
-              </div>
+              <button className="forge-btn-ghost" onClick={copyResult}>{copied ? "✓ COPIÉ" : "COPIER"}</button>
             </div>
-
             <div className="result-block">
               <div className="result-content">{result}</div>
             </div>
-
             <div style={{ marginTop: "24px", display: "flex", gap: "12px", justifyContent: "space-between" }}>
-              <button className="forge-btn-ghost" onClick={() => { setStep(1); setResult(""); }}>
-                ← AUTRE LIVRABLE
-              </button>
-              <button className="forge-btn" onClick={reset}>
-                NOUVEAU PROFIL
-              </button>
+              <button className="forge-btn-ghost" onClick={() => { setStep(1); setResult(""); }}>← AUTRE LIVRABLE</button>
+              <button className="forge-btn" onClick={reset}>NOUVEAU PROFIL</button>
             </div>
           </div>
         )}
       </div>
 
       {/* Footer */}
-      <div style={{
-        position: "fixed",
-        bottom: 0,
-        left: 0,
-        right: 0,
-        borderTop: "1px solid #111",
-        padding: "10px 32px",
-        display: "flex",
-        justifyContent: "space-between",
-        background: "#0a0a0a",
-      }}>
-        <span style={{ fontSize: "9px", color: "#222", letterSpacing: "2px" }}>
-          FORGE v0.1 · COAXIS GROWTH AGENCY
-        </span>
-        <span style={{ fontSize: "9px", color: "#222", letterSpacing: "2px" }}>
-          USAGE INTERNE · SYSTEM 10K
-        </span>
+      <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, borderTop: "1px solid #111", padding: "10px 32px", display: "flex", justifyContent: "space-between", background: "#0a0a0a" }}>
+        <span style={{ fontSize: "9px", color: "#222", letterSpacing: "2px" }}>FORGE v0.1 · COAXIS GROWTH AGENCY</span>
+        <span style={{ fontSize: "9px", color: "#222", letterSpacing: "2px" }}>USAGE INTERNE · SYSTEM 10K</span>
       </div>
     </div>
   );
