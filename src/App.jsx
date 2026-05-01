@@ -198,7 +198,7 @@ export default function FORGE() {
         },
         body: JSON.stringify({
           model: "claude-sonnet-4-6",
-          max_tokens: 1500,
+          max_tokens: 4000,
           system: FORGE_SYSTEM_PROMPT,
           messages: [{ role: "user", content: deliverable.prompt(form) }],
         }),
